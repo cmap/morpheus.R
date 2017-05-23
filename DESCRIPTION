@@ -1,0 +1,15 @@
+Package: morpheus
+Title: Interactive Heat Maps Using 'htmlwidgets' and 'morpheus.js'
+Version: 0.1.1.1
+Authors@R: person("Joshua", "Gould", email = "jgould@broadinstitute.org", role = c("aut", "cre"))
+Description: Create interactive heat maps that are usable from the R console, in the
+    'RStudio' viewer pane, in 'R Markdown' documents, and in 'Shiny' apps.
+License: BSD 3-clause | file LICENSE
+Depends: R (>= 3.4.0)
+Encoding: UTF-8
+LazyData: true
+Collate: 'morpheus.R'
+RoxygenNote: 6.0.1
+URL: https://github.com/cmap/morpheus.R
+BugReports: https://github.com/cmap/morpheus.R/issues
+
