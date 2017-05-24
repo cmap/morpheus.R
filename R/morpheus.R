@@ -138,6 +138,7 @@ morpheus <- function(x,
 }
 
 
+is.dendrogram <- function (x) { inherits(x, "dendrogram")  }
 
 # Serialize a dendrogram object to a d3-friendly tree. The main
 # requirement is that nodes are lists with child nodes in a
