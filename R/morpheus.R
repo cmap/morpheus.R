@@ -1,10 +1,10 @@
 NULL
 
 `%||%` <- function(a, b) {
-  if (!is.null(a))
-  a
-  else
-  b
+    if (! is.null(a))
+    a
+    else
+    b
 }
 
 
@@ -45,114 +45,184 @@ NULL
 #'morpheus(mtcars, rowAnnotations=rowAnnotations, colorScheme=list(values=list(0, 4), colors=list('green', 'black')), overrideRowDefaults=FALSE rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
 #' 
 morpheus <- function(x,
-  labRow = rownames(x), 
-  labCol = colnames(x), 
-  Rowv = NULL, 
-  Colv = if(symm)"Rowv" else NULL,
-  distfun = dist, 
-  hclustfun = hclust,
-  reorderfun = function(d, w) reorder(d, w),
-  rowAnnotations=NULL,
-  columnAnnotations=NULL,
-  symm = FALSE,
-  na.rm = TRUE,
-  width = NULL, height = NULL,...
+labRow = rownames(x),
+labCol = colnames(x),
+# dendrogram control
+Rowv = TRUE,
+Colv=if (symm)"Rowv" else TRUE,
+distfun = dist,
+hclustfun = hclust,
+dendrogram = c("both", "row", "column", "none"),
+reorderfun = function(d, w) reorder(d, w),
+symm = FALSE,
+rowAnnotations=NULL,
+columnAnnotations=NULL,
+na.rm = TRUE,
+width = NULL, height = NULL, ...
 ) {
-  
-  name <- deparse(substitute(x))
-  ## x is a matrix!
-  if(!is.matrix(x)) {
-  x <- as.matrix(x)
-  }
-  if(!is.matrix(x)) stop("x must be a matrix")
-  
-  nr <- dim(x)[1]
-  nc <- dim(x)[2]
-  ddc <- NULL
-  ddr <- NULL
-  doRdend <- !identical(Rowv, NA)
-  doCdend <- !identical(Colv, NA)
-  if (!doRdend && identical(Colv, "Rowv")) 
-    doCdend <- FALSE
-  if (is.null(Rowv)) 
-    Rowv <- rowMeans(x, na.rm = na.rm)
-  if (is.null(Colv)) 
-    Colv <- colMeans(x, na.rm = na.rm)
-  if (doRdend) {
-    if (inherits(Rowv, "dendrogram")) 
-      ddr <- Rowv
-    else {
-      hcr <- hclustfun(distfun(x))
-      ddr <- as.dendrogram(hcr)
-      if (!is.logical(Rowv) || Rowv) 
+    name <- deparse(substitute(x))
+    ## x is a matrix!
+    if (! is.matrix(x)) {
+        x <- as.matrix(x)
+    }
+    if (! is.matrix(x)) stop("x must be a matrix")
+
+    nr <- dim(x)[1]
+    nc <- dim(x)[2]
+    ddc <- NULL
+    ddr <- NULL
+    if (! inherits(Rowv, "dendrogram")) {
+        if (((is.logical(Rowv) && ! isTRUE(Rowv)) || (is.null(Rowv))) &&
+        (dendrogram %in% c("both", "row"))) {
+            warning("Discrepancy: Rowv is FALSE, while dendrogram is `",
+            dendrogram, "'. Omitting row dendogram.")
+            if (dendrogram == "both")
+            dendrogram <- "column"
+            else dendrogram <- "none"
+        }
+    }
+    if (! inherits(Colv, "dendrogram")) {
+        if (((is.logical(Colv) && ! isTRUE(Colv)) || (is.null(Colv))) &&
+        (dendrogram %in% c("both", "column"))) {
+            warning("Discrepancy: Colv is FALSE, while dendrogram is `",
+            dendrogram, "'. Omitting column dendogram.")
+            if (dendrogram == "both")
+            dendrogram <- "row"
+            else dendrogram <- "none"
+        }
+    }
+    if (inherits(Rowv, "dendrogram")) {
+        ddr <- Rowv
+        rowInd <- order.dendrogram(ddr)
+        if (length(rowInd) > nr || any(rowInd < 1 | rowInd >
+        nr))
+        stop("Rowv dendrogram doesn't match size of x")
+        if (length(rowInd) < nr)
+        nr <- length(rowInd)
+    }
+    else if (is.integer(Rowv)) {
+        distr <- distfun(x)
+        hcr <- hclustfun(distr)
+        ddr <- as.dendrogram(hcr)
         ddr <- reorderfun(ddr, Rowv)
+        rowInd <- order.dendrogram(ddr)
+        if (nr != length(rowInd))
+        stop("row dendrogram ordering gave index of wrong length")
     }
-    if (nr != length(rowInd <- order.dendrogram(ddr))) 
-      stop("row dendrogram ordering gave index of wrong length")
-  }
-  else rowInd <- 1L:nr
-  if (doCdend) {
-    if (inherits(Colv, "dendrogram")) 
-      ddc <- Colv
-    else if (identical(Colv, "Rowv")) {
-      if (nr != nc) 
-        stop("Colv = \"Rowv\" but nrow(x) != ncol(x)")
-      ddc <- ddr
+    else if (isTRUE(Rowv)) {
+        Rowv <- rowMeans(x, na.rm = na.rm)
+        distr <- distfun(x)
+        hcr <- hclustfun(distr)
+        ddr <- as.dendrogram(hcr)
+        ddr <- reorderfun(ddr, Rowv)
+        rowInd <- order.dendrogram(ddr)
+        if (nr != length(rowInd))
+        stop("row dendrogram ordering gave index of wrong length")
+    }
+    else if (! isTRUE(Rowv)) {
+        rowInd <- nr : 1
+        ddr <- as.dendrogram(hclust(dist(diag(nr))))
     }
     else {
-      hcc <- hclustfun(distfun(if (symm) 
-        x
-      else t(x)))
-      ddc <- as.dendrogram(hcc)
-      if (!is.logical(Colv) || Colv) 
-        ddc <- reorderfun(ddc, Colv)
+        rowInd <- nr : 1
+        ddr <- as.dendrogram(Rowv)
     }
-    if (nc != length(colInd <- order.dendrogram(ddc))) 
-      stop("column dendrogram ordering gave index of wrong length")
-  }
-  else colInd <- 1L:nc
+    if (inherits(Colv, "dendrogram")) {
+        ddc <- Colv
+        colInd <- order.dendrogram(ddc)
+        if (length(colInd) > nc || any(colInd < 1 | colInd >
+        nc))
+        stop("Colv dendrogram doesn't match size of x")
+        if (length(colInd) < nc)
+        nc <- length(colInd)
+    }
+    else if (identical(Colv, "Rowv")) {
+        if (nr != nc)
+        stop("Colv = \"Rowv\" but nrow(x) != ncol(x)")
+        if (exists("ddr")) {
+            ddc <- ddr
+            colInd <- order.dendrogram(ddc)
+        }
+        else colInd <- rowInd
+    }
+    else if (is.integer(Colv)) {
+        distc <- distfun(if (symm)
+        x
+        else t(x))
+        hcc <- hclustfun(distc)
+        ddc <- as.dendrogram(hcc)
+        ddc <- reorderfun(ddc, Colv)
+        colInd <- order.dendrogram(ddc)
+        if (nc != length(colInd))
+        stop("column dendrogram ordering gave index of wrong length")
+    }
+    else if (isTRUE(Colv)) {
+        Colv <- colMeans(x, na.rm = na.rm)
+        distc <- distfun(if (symm)
+        x
+        else t(x))
+        hcc <- hclustfun(distc)
+        ddc <- as.dendrogram(hcc)
+        ddc <- reorderfun(ddc, Colv)
+        colInd <- order.dendrogram(ddc)
+        if (nc != length(colInd))
+        stop("column dendrogram ordering gave index of wrong length")
+    }
+    else if (! isTRUE(Colv)) {
+        colInd <- 1 : nc
+        ddc <- as.dendrogram(hclust(dist(diag(nc))))
+    }
+    else {
+        colInd <- 1 : nc
+        ddc <- as.dendrogram(Colv)
+    }
 
-  ddr <- rev(ddr)
-  rowInd <- rev(rowInd) # reverse to match order of R heat maps
-  x <- x[rowInd, colInd]
+    ddr <- rev(ddr)
+    rowInd <- rev(rowInd) # reverse to match order of R heat maps
+    x <- x[rowInd, colInd]
 
-  ## Labels for Row/Column 
-  rownames(x) <- labRow %||% paste(1:nrow(x))
-  colnames(x) <- labCol %||% paste(1:ncol(x))  
-  options(htmlwidgets.TOJSON_ARGS = list(dataframe="column"))  
-  options <- list(...)
-  columnDendrogram <- if(!is.null(ddc) && is.dendrogram(ddc)) dendToTree(ddc) else NULL
-  rowDendrogram <- if(!is.null(ddr) && is.dendrogram(ddr)) dendToTree(ddr) else NULL
-  payload <- list(rows = nrow(x),  rowDendrogram=rowDendrogram, columnDendrogram=columnDendrogram, columns = ncol(x), name=name, 
-    array=x, rowNames=rownames(x), columnNames=colnames(x), rowAnnotations=rowAnnotations, columnAnnotations=columnAnnotations, options = options)
-  # create widget
-  htmlwidgets::createWidget(
-  name = 'morpheus',
-  payload,
-  width = width,
-  height = height,
-  package = 'morpheus',
-  sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
-  )
-
+    ## Labels for Row/Column
+    rownames(x) <- labRow %||% paste(1 : nrow(x))
+    colnames(x) <- labCol %||% paste(1 : ncol(x))
+    options(htmlwidgets.TOJSON_ARGS = list(dataframe = "column"))
+    options <- list(...)
+   
+    columnDendrogram <- if (! is.null(ddc) &&
+        is.dendrogram(ddc) &&
+        dendrogram %in% c("both", "row")) dendToTree(ddc) else NULL
+    rowDendrogram <- if (! is.null(ddr) &&
+        is.dendrogram(ddr) &&
+        dendrogram %in% c("both", "column"))
+    dendToTree(ddr) else NULL
+    payload <- list(rows = nrow(x), rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, columns = ncol(x), name = name,
+    array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = options)
+    # create widget
+    htmlwidgets::createWidget(
+    name = 'morpheus',
+    payload,
+    width = width,
+    height = height,
+    package = 'morpheus',
+    sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
+    )
 }
 
 
-is.dendrogram <- function (x) { inherits(x, "dendrogram")  }
+is.dendrogram <- function (x) { inherits(x, "dendrogram")}
 
 # Serialize a dendrogram object to a d3-friendly tree. The main
 # requirement is that nodes are lists with child nodes in a
 # field named `children`.
 dendToTree <- function(dend) {
-  tree <- c(
+    tree <- c(
     as.list(attributes(dend)[c('height')])
-  )
+    )
 
-  # Recursively add children
-  if (!is.leaf(dend)) {
-    tree$children <- lapply(dend, dendToTree)
-  }
-  tree
+    # Recursively add children
+    if (! is.leaf(dend)) {
+        tree$children <- lapply(dend, dendToTree)
+    }
+    tree
 }
 
 #' Shiny bindings for morpheus
@@ -173,12 +243,12 @@ dendToTree <- function(dend) {
 #'
 #' @export
 morpheusOutput <- function(outputId, width = '100%', height = '400px'){
-  htmlwidgets::shinyWidgetOutput(outputId, 'morpheus', width, height, package = 'morpheus')
+    htmlwidgets::shinyWidgetOutput(outputId, 'morpheus', width, height, package = 'morpheus')
 }
 
 #' @rdname morpheus-shiny
 #' @export
 renderMorpheus <- function(expr, env = parent.frame(), quoted = FALSE) {
-  if (!quoted) { expr <- substitute(expr) } # force quoted
-  htmlwidgets::shinyRenderWidget(expr, morpheusOutput, env, quoted = TRUE)
+    if (! quoted) { expr <- substitute(expr)} # force quoted
+    htmlwidgets::shinyRenderWidget(expr, morpheusOutput, env, quoted = TRUE)
 }
