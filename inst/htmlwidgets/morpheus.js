@@ -1,15 +1,15 @@
 HTMLWidgets.widget({
   name: "morpheus",
   type: "output",
-  factory: function(el, width, height) {
+  factory: function (el, width, height) {
     var instance = {};
     return {
-      renderValue: function(x) {
+      renderValue: function (x) {
 
-        var toDendrogram = function(rootNode) {
+        var toDendrogram = function (rootNode) {
           var counter = 0;
           var leafNodes = [];
-         
+
           function visit(node) {
             var children = node.children;
             if (children !== undefined) {
@@ -44,23 +44,33 @@ HTMLWidgets.widget({
           seriesArrays: [x.array],
           rows: x.rows,
           columns: x.columns,
-          rowMetadataModel:{vectors:[{name:'id', array:x.rowNames}]},
-          columnMetadataModel:{vectors:[{name:'id', array:x.columnNames}]}
+          rowMetadataModel: {
+            vectors: [{
+              name: 'id',
+              array: x.rowNames
+            }]
+          },
+          columnMetadataModel: {
+            vectors: [{
+              name: 'id',
+              array: x.columnNames
+            }]
+          }
         });
-       if(x.columnDendrogram) {
-         x.columnDendrogram = toDendrogram(x.columnDendrogram);
-       }
-       if(x.rowDendrogram) {
-         x.rowDendrogram = toDendrogram(x.rowDendrogram);
-       }
-        if(x.rowAnnotations){
-          for(var key in x.rowAnnotations) {
+        if (x.columnDendrogram) {
+          x.columnDendrogram = toDendrogram(x.columnDendrogram);
+        }
+        if (x.rowDendrogram) {
+          x.rowDendrogram = toDendrogram(x.rowDendrogram);
+        }
+        if (x.rowAnnotations) {
+          for (var key in x.rowAnnotations) {
             dataset.getRowMetadata().add(key).array = x.rowAnnotations[key];
           }
         }
-    
-        if(x.columnAnnotations){
-          for(var key in x.columnAnnotations) {
+
+        if (x.columnAnnotations) {
+          for (var key in x.columnAnnotations) {
             dataset.getColumnMetadata().add(key).array = x.columnAnnotations[key];
           }
         }
@@ -76,9 +86,9 @@ HTMLWidgets.widget({
         var heatMap = new morpheus.HeatMap(options);
         instance.heatmap = heatMap;
       },
-      resize: function(width, height) {
-       if(instance.heatmap!=null) {
-          m.revalidate();
+      resize: function (width, height) {
+        if (instance.heatmap != null) {
+          instance.heatmap.revalidate();
         }
       }
     };

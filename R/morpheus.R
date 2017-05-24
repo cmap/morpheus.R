@@ -41,8 +41,8 @@ NULL
 #' 
 #' @examples 
 #' library(morpheus)
-#' rowAnnotations = data.frame(1:32)
-#' morpheus(mtcars, rowAnnotations=rowAnnotations, colorScheme=list(values=list(0, 4), colors=list('green', 'black')))
+#' rowAnnotations = data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
+#'morpheus(mtcars, rowAnnotations=rowAnnotations, colorScheme=list(values=list(0, 4), colors=list('green', 'black')), overrideRowDefaults=FALSE rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
 #' 
 morpheus <- function(x,
   labRow = rownames(x), 
