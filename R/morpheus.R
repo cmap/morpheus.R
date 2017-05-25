@@ -42,8 +42,8 @@ NULL
 #' @examples 
 #' library(morpheus)
 #' rowAnnotations = data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
-#'morpheus(mtcars, rowAnnotations=rowAnnotations, colorScheme=list(values=list(0, 4), colors=list('green', 'black')), overrideRowDefaults=FALSE rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
-#' 
+#' morpheus(mtcars, colorScheme=list(colors=heat.colors(3)), rowAnnotations=rowAnnotations, overrideRowDefaults=FALSE, rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
+
 morpheus <- function(x,
 labRow = rownames(x),
 labCol = colnames(x),
@@ -185,8 +185,32 @@ width = NULL, height = NULL, ...
     rownames(x) <- labRow %||% paste(1 : nrow(x))
     colnames(x) <- labCol %||% paste(1 : ncol(x))
     options(htmlwidgets.TOJSON_ARGS = list(dataframe = "column"))
-    options <- list(...)
-   
+    morpheusOptions <- list(...)
+    
+    if (!is.null(morpheusOptions$colorScheme$colors)) {
+      morpheusOptions$colorScheme$colors <- lapply(morpheusOptions$colorScheme$colors, function(color){
+        rgb <- col2rgb(color)
+        paste("rgb(", rgb[1], ",", rgb[2], ",", rgb[3], ")", sep='')
+      })
+    }
+    
+    if (!is.null(morpheusOptions$colorScheme$colors) && is.null(morpheusOptions$colorScheme$values)) { 
+      rng = range(x)
+      nvals <- length(morpheusOptions$colorScheme$colors)
+      fractionStep <- 1/(nvals-1)
+      values <- vector("list", nvals)
+      dataRange <- rng[2] - rng[1]
+      values[1] <- rng[1]
+      values[nvals] <- rng[2]
+      
+      for(i in 2:nvals-1) {
+        fraction <-fractionStep*(i-1)
+        values[i] <- rng[1] + fraction*dataRange
+      }
+      morpheusOptions$colorScheme$values <- values
+     
+    }
+    
     columnDendrogram <- if (! is.null(ddc) &&
         is.dendrogram(ddc) &&
         dendrogram %in% c("both", "row")) dendToTree(ddc) else NULL
@@ -195,7 +219,7 @@ width = NULL, height = NULL, ...
         dendrogram %in% c("both", "column"))
     dendToTree(ddr) else NULL
     payload <- list(rows = nrow(x), rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, columns = ncol(x), name = name,
-    array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = options)
+    array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = morpheusOptions)
     # create widget
     htmlwidgets::createWidget(
     name = 'morpheus',

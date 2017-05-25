@@ -74,7 +74,9 @@ HTMLWidgets.widget({
             dataset.getColumnMetadata().add(key).array = x.columnAnnotations[key];
           }
         }
+
         var options = x.options;
+        console.log(options);
         options.el = el;
         options.columnDendrogramField = null;
         options.columnDendrogram = x.columnDendrogram;
