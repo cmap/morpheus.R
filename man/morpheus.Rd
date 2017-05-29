@@ -2,63 +2,92 @@
 % Please edit documentation in R/morpheus.R
 \name{morpheus}
 \alias{morpheus}
-\title{Morpheus Heatmap widget}
+\title{Morpheus heat map widget}
 \source{
 
 }
 \usage{
-morpheus(x, labRow = rownames(x), labCol = colnames(x), Rowv = NULL,
-  Colv = if (symm) "Rowv" else NULL, distfun = dist, hclustfun = hclust,
-  reorderfun = function(d, w) reorder(d, w), rowAnnotations = NULL,
-  columnAnnotations = NULL, symm = FALSE, na.rm = TRUE, width = NULL,
-  height = NULL, ...)
+morpheus(x, labRow = rownames(x), labCol = colnames(x), Rowv = TRUE,
+  Colv = if (symm) "Rowv" else TRUE, distfun = dist, hclustfun = hclust,
+  dendrogram = c("both", "row", "column", "none"), reorderfun = function(d,
+  w) reorder(d, w), symm = FALSE, rowAnnotations = NULL,
+  columnAnnotations = NULL, na.rm = TRUE, width = NULL, height = NULL,
+  ...)
 }
 \arguments{
 \item{x}{numeric matrix of the values to be plotted.}
 
-\item{labRow}{character vectors with row labels to use (from top to bottom); default to rownames(x).}
+\item{Rowv}{determines if and how the \emph{row} dendrogram should be 
+reordered.    By default, it is TRUE, which implies dendrogram is computed and
+reordered based on row means. If NULL or FALSE, then no dendrogram is
+computed and no reordering is done. If a \code{\link{dendrogram}}, then it
+is used "as-is", ie without any reordering. If a vector of integers, then
+dendrogram is computed and reordered based on the order of the vector.}
 
-\item{labCol}{character vectors with column labels to use (from left to right); default to colnames(x).}
+\item{Colv}{determines if and how the \emph{column} dendrogram should be
+reordered. Has the options as the \code{Rowv} argument above and 
+\emph{additionally} when \code{x} is a square matrix, \code{Colv="Rowv"}
+means that columns should be treated identically to the rows.}
 
-\item{Rowv}{determines if and how the row dendrogram should be computed and reordered. Either a dendrogram or a vector of values used to reorder the row dendrogram or NA to suppress any row dendrogram (and reordering) or by default, NULL, see ‘Details’ below.}
+\item{distfun}{function used to compute the distance (dissimilarity) between
+both rows and columns. Defaults to \code{\link{dist}}.}
 
-\item{Colv}{determines if and how the column dendrogram should be reordered. Has the same options as the Rowv argument above and additionally when x is a square matrix, Colv = "Rowv" means that columns should be treated identically to the rows (and so if there is to be no row dendrogram there will not be a column one either).}
+\item{hclustfun}{function used to compute the hierarchical clustering when
+\code{Rowv} or \code{Colv} are not dendrograms. Defaults to 
+\code{\link{hclust}}.}
 
-\item{distfun}{function used to compute the distance (dissimilarity) between both rows and columns. Defaults to dist.}
+\item{dendrogram}{character string indicating whether to draw "none", "row",
+"column" or "both" dendrograms. Defaults to "both". However, if Rowv (or
+Colv) is FALSE or NULL and dendrogram is "both", then a warning is issued
+and Rowv (or Colv) arguments are honoured.}
 
-\item{hclustfun}{function used to compute the hierarchical clustering when Rowv or Colv are not dendrograms. Defaults to hclust. Should take as argument a result of distfun and return an object to which as.dendrogram can be applied.}
+\item{reorderfun}{\code{function(d, w)} of dendrogram and weights for 
+reordering the row and column dendrograms. The default uses 
+\code{\link{stats}{reorder.dendrogram}}.}
 
-\item{reorderfun}{function(d, w) of dendrogram and weights for reordering the row and column dendrograms. The default uses reorder.dendrogram.}
+\item{symm}{logical indicating if \code{x} should be treated 
+\bold{symm}etrically; can only be true when \code{x} is a square matrix.}
 
-\item{rowAnnotations}{Data frame of additional row annotations in same order as x (optional)}
+\item{rowAnnotations}{Data frame of additional row annotations in same order
+as x (optional)}
 
-\item{columnAnnotations}{Data frame of additional column annotations in same order as x (optional)}
+\item{columnAnnotations}{Data frame of additional column annotations in same
+order as x (optional)}
 
-\item{...}{Additional morpheus options as documented at https://clue.io/morpheus/configuration.html}
+\item{na.rm}{logical indicating whether \code{NA}'s should be removed.}
 
-\item{colorScheme}{List of scalingMode ("fixed" or "relative"), stepped (Whether color scheme is continuous (FALSE) or discrete (TRUE)), values (list of numbers corresponding to colors), colors (list of colors)}
+\item{...}{Additional morpheus options as documented at
+\url{https://clue.io/morpheus/configuration.html}}
 
-\item{rowSize}{Heat map column size in pixels or "fit" to fit heat map to current height (optional, defaults to 13)}
+\item{colorScheme}{List of scalingMode ("fixed" or "relative"), stepped
+(Whether color scheme is continuous (FALSE) or discrete (TRUE)), values
+(list of numbers corresponding to colors), colors (list of colors)}
 
-\item{columnSize}{Heat map column size in pixels or "fit" to fit heat map to current width (optional, defaults to 13)}
+\item{rowSize}{Heat map column size in pixels or "fit" to fit heat map to
+current height (optional, defaults to 13)}
 
-\item{drawGrid}{Whether to draw heat map grid (optional, defaults to \code{TRUE})}
+\item{columnSize}{Heat map column size in pixels or "fit" to fit heat map to
+current width (optional, defaults to 13)}
+
+\item{drawGrid}{Whether to draw heat map grid (optional, defaults to
+\code{TRUE})}
 
 \item{gridColor}{Heat map grid color (optional, defaults to "#808080")}
 
 \item{gridThickness}{Heat map grid thickness (optional, defaults to 0.1)}
 
-\item{drawValues}{Whether to draw values in the heat map (optional, defaults to \code{FALSE})}
+\item{drawValues}{Whether to draw values in the heat map (optional, defaults
+to \code{FALSE})}
 }
 \description{
-Creates a morpheus.js-based heatmap widget.
+Creates a morpheus.js-based heat map widget.
 }
 \examples{
 library(morpheus)
-rowAnnotations = data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
-morpheus(mtcars, rowAnnotations=rowAnnotations, colorScheme=list(values=list(0, 4), colors=list('green', 'black')), overrideRowDefaults=FALSE rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
-
+rowAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
+morpheus(mtcars, colorScheme=list(colors=heat.colors(3)), rowAnnotations=rowAnnotations, overrideRowDefaults=FALSE,
+ rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
 }
 \seealso{
-\link{heatmap}
+\link{heatmap}, \link[gplots]{heatmap.2}
 }

@@ -1,3 +1,4 @@
+#' @import htmlwidgets
 NULL
 
 `%||%` <- function(a, b) {
@@ -8,45 +9,75 @@ NULL
 }
 
 
-#' Morpheus Heatmap widget
+#' Morpheus heat map widget
 #' 
-#' Creates a morpheus.js-based heatmap widget.
+#' Creates a morpheus.js-based heat map widget.
 #' 
 #' @param x numeric matrix of the values to be plotted.
-#' @param labRow character vectors with row labels to use (from top to bottom); default to rownames(x).
-#' @param labCol character vectors with column labels to use (from left to right); default to colnames(x).
-#' @param Rowv determines if and how the row dendrogram should be computed and reordered. Either a dendrogram or a vector of values used to reorder the row dendrogram or NA to suppress any row dendrogram (and reordering) or by default, NULL, see ‘Details’ below.
-#' @param Colv determines if and how the column dendrogram should be reordered. Has the same options as the Rowv argument above and additionally when x is a square matrix, Colv = "Rowv" means that columns should be treated identically to the rows (and so if there is to be no row dendrogram there will not be a column one either).
-#' @param distfun function used to compute the distance (dissimilarity) between both rows and columns. Defaults to dist.
-#' @param hclustfun function used to compute the hierarchical clustering when Rowv or Colv are not dendrograms. Defaults to hclust. Should take as argument a result of distfun and return an object to which as.dendrogram can be applied.
-#' @param reorderfun  function(d, w) of dendrogram and weights for reordering the row and column dendrograms. The default uses reorder.dendrogram.
-#' @param rowAnnotations Data frame of additional row annotations in same order as x (optional)
-#' @param columnAnnotations Data frame of additional column annotations in same order as x (optional)
-#' @param colorScheme List of scalingMode ("fixed" or "relative"), stepped (Whether color scheme is continuous (FALSE) or discrete (TRUE)), values (list of numbers corresponding to colors), colors (list of colors)
-#' @param rowSize Heat map column size in pixels or "fit" to fit heat map to current height (optional, defaults to 13)
-#' @param columnSize Heat map column size in pixels or "fit" to fit heat map to current width (optional, defaults to 13)
-#' @param drawGrid Whether to draw heat map grid (optional, defaults to \code{TRUE})
+#'   
+#' @param Rowv determines if and how the \emph{row} dendrogram should be 
+#'   reordered.	By default, it is TRUE, which implies dendrogram is computed and
+#'   reordered based on row means. If NULL or FALSE, then no dendrogram is
+#'   computed and no reordering is done. If a \code{\link{dendrogram}}, then it
+#'   is used "as-is", ie without any reordering. If a vector of integers, then
+#'   dendrogram is computed and reordered based on the order of the vector.
+#' @param Colv  determines if and how the \emph{column} dendrogram should be
+#'   reordered. Has the options as the \code{Rowv} argument above and 
+#'   \emph{additionally} when \code{x} is a square matrix, \code{Colv="Rowv"}
+#'   means that columns should be treated identically to the rows.
+#' @param distfun function used to compute the distance (dissimilarity) between
+#'   both rows and columns. Defaults to \code{\link{dist}}.
+#' @param hclustfun function used to compute the hierarchical clustering when
+#'   \code{Rowv} or \code{Colv} are not dendrograms. Defaults to 
+#'   \code{\link{hclust}}.
+#' @param dendrogram character string indicating whether to draw "none", "row",
+#'   "column" or "both" dendrograms. Defaults to "both". However, if Rowv (or
+#'   Colv) is FALSE or NULL and dendrogram is "both", then a warning is issued
+#'   and Rowv (or Colv) arguments are honoured.
+#' @param reorderfun  \code{function(d, w)} of dendrogram and weights for 
+#'   reordering the row and column dendrograms. The default uses 
+#'   \code{\link{stats}{reorder.dendrogram}}.
+#' @param symm logical indicating if \code{x} should be treated 
+#'   \bold{symm}etrically; can only be true when \code{x} is a square matrix.
+#'   
+#' @param na.rm logical indicating whether \code{NA}'s should be removed.
+#'   
+#' @param rowAnnotations Data frame of additional row annotations in same order
+#'   as x (optional)
+#' @param columnAnnotations Data frame of additional column annotations in same
+#'   order as x (optional)
+#' @param colorScheme List of scalingMode ("fixed" or "relative"), stepped
+#'   (Whether color scheme is continuous (FALSE) or discrete (TRUE)), values
+#'   (list of numbers corresponding to colors), colors (list of colors)
+#' @param rowSize Heat map column size in pixels or "fit" to fit heat map to
+#'   current height (optional, defaults to 13)
+#' @param columnSize Heat map column size in pixels or "fit" to fit heat map to
+#'   current width (optional, defaults to 13)
+#' @param drawGrid Whether to draw heat map grid (optional, defaults to
+#'   \code{TRUE})
 #' @param gridColor Heat map grid color (optional, defaults to "#808080")
 #' @param gridThickness Heat map grid thickness (optional, defaults to 0.1)
-#' @param drawValues Whether to draw values in the heat map (optional, defaults to \code{FALSE})
-#' @param ... Additional morpheus options as documented at https://clue.io/morpheus/configuration.html
-#' 
+#' @param drawValues Whether to draw values in the heat map (optional, defaults
+#'   to \code{FALSE})
+#' @param ... Additional morpheus options as documented at
+#'   \url{https://clue.io/morpheus/configuration.html}
+#'   
 #' @import htmlwidgets
 #'   
 #' @export
-#' @source 
+#' @source
 #' 
-#' @seealso 
-#' \link{heatmap}
-#' 
+#' @seealso \link{heatmap}, \link[gplots]{heatmap.2}
 #' @examples 
 #' library(morpheus)
-#' rowAnnotations = data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
-#' morpheus(mtcars, colorScheme=list(colors=heat.colors(3)), rowAnnotations=rowAnnotations, overrideRowDefaults=FALSE, rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
+#' rowAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
+#' morpheus(mtcars, colorScheme=list(colors=heat.colors(3)), rowAnnotations=rowAnnotations, overrideRowDefaults=FALSE,
+#'  rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
 
 morpheus <- function(x,
 labRow = rownames(x),
 labCol = colnames(x),
+
 # dendrogram control
 Rowv = TRUE,
 Colv=if (symm)"Rowv" else TRUE,
