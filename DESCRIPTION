@@ -5,7 +5,7 @@ Author: person("Joshua", "Gould", email = "jgould@broadinstitute.org", role = c(
 Maintainer: Joshua Gould <jgould@broadinstitute.org>
 Description: Create interactive heat maps that are usable from the R console, in the
     'RStudio' viewer pane, in 'R Markdown' documents, and in 'Shiny' apps.
-License: BSD_3_clause
+License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Collate: 'morpheus.R'
