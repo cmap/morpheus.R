@@ -1,2 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^.*\.idea$
+^README.md$
+^.gitignore$
+^morpheus_.*.tar.gz$
