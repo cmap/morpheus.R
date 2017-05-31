@@ -1,13 +1,16 @@
-# morpheus.js-based heat map widget in R
+# Morpheus
+Morpheus.js-based heat map widget in R.
 
+## Install
 
-Install and run example:
+```
+devtools::install_github('cmap/morpheus.R')
+```
 
-```shell
-git clone https://github.com/cmap/morpheus.R.git
-R CMD INSTALL morpheus.R
+## Example
+
+```
 library(morpheus)
 example(morpheus)
-
 ```
 
