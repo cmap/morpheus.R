@@ -112,7 +112,7 @@ library(morpheus)
 rowAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), 
   replace = TRUE))
 morpheus(mtcars, 
-  colorScheme=list(colors=heat.colors(3)), 
+  colorScheme=list(scalingMode="fixed", colors=heat.colors(3)),
   rowAnnotations=rowAnnotations, 
   overrideRowDefaults=FALSE, 
   rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
