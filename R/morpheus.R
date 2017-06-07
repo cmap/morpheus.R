@@ -214,6 +214,126 @@ morpheusOptions$drawValues <- drawValues
 
 is.dendrogram <- function (x) { inherits(x, "dendrogram")}
 
+
+
+read.gct <- function(file) {
+  version = trimws(scan(
+    file,
+    what = "",
+    nlines = 1,
+    sep = "\t",
+    quiet = TRUE
+  )[1])
+  dimensions = scan(
+    file,
+    what = double(0),
+    nlines = 1,
+    skip = 1,
+    sep = "\t",
+    quiet = TRUE
+  )
+  nrmat = dimensions[1]
+  ncmat = dimensions[2]
+  nrhd <- 0
+  nchd <- 0
+  if (version == "#1.3") {
+    nrhd <- dimensions[3]
+    nchd <- dimensions[4]
+  }
+  header = scan(
+    file,
+    what = "",
+    nlines = 1,
+    skip = 2,
+    sep = "\t",
+    quote = NULL,
+    quiet = TRUE
+  )
+  # construct row header and column id's from the header line
+  if (nrhd > 0) {
+    rhd <- header[2:(nrhd + 1)]
+    cid <- header[-(nrhd + 1):-1]
+    column.offset <- 1
+  }
+  else {
+    column.offset <- 2
+    rhd = NULL
+    cid = header[(1 + column.offset):length(header)]
+  }
+  # read in the next set of headers (column annotations) and shape into a matrix
+  if (nchd > 0) {
+    header = scan(
+      file,
+      what = "",
+      nlines = nchd,
+      skip = 3,
+      sep = "\t",
+      quote = NULL,
+      quiet = TRUE
+    )
+    header = matrix(header,
+                    nrow = nchd,
+                    ncol = ncmat + nrhd + 1,
+                    byrow = TRUE)
+    # extract the column header and column descriptions
+    chd = header[, 1]
+    columnAnnotations = header[,-(nrhd + 1):-1]
+    # need to transpose in the case where there's only one column annotation
+    if (nchd == 1)
+      columnAnnotations = t(columnAnnotations)
+  }
+  else {
+    chd = NULL
+    columnAnnotations = data.frame()
+  }
+  # read in the data matrix and row descriptions, shape into a matrix
+  data = scan(
+    file,
+    what = "",
+    nlines = nrmat,
+    skip = 3 + nchd,
+    sep = "\t",
+    quote = NULL,
+    quiet = TRUE
+  )
+  data = matrix(
+    data,
+    nrow = nrmat,
+    ncol = ncmat + nrhd + column.offset,
+    byrow = TRUE
+  )
+  # Extract the row id's row descriptions, and the data matrix
+  rid = data[, 1]
+  if (nrhd > 0) {
+    # need as.matrix for the case where there's only one row annotation
+    rowAnnotations = as.matrix(data[, 2:(nrhd + 1)])
+    data = matrix(as.numeric(data[,-(nrhd + 1):-1]),
+                 nrow = nrmat, ncol = ncmat)
+  }
+  else {
+    rowAnnotations = data.frame()
+    data = matrix(as.numeric(data[, (1 + column.offset):ncol(data)]), nrow = nrmat, ncol = ncmat)
+  }
+  # assign names to matrix
+  dimnames(data) = list(rid, cid)
+  if (nrhd > 0) {
+    dimnames(rowAnnotations) = list(rid, rhd)
+    rowAnnotations = as.data.frame(rowAnnotations, stringsAsFactors = FALSE)
+  }
+  if (nchd > 0) {
+    columnAnnotations = t(columnAnnotations)
+    dimnames(columnAnnotations) = list(cid, chd)
+    columnAnnotations = as.data.frame(columnAnnotations, stringsAsFactors = FALSE)
+  }
+  return (
+    list (
+      data = data,
+      rowAnnotations = rowAnnotations,
+      columnAnnotations = columnAnnotations
+    )
+  )
+}
+
 # Serialize a dendrogram object to a d3-friendly tree. The main
 # requirement is that nodes are lists with child nodes in a
 # field named `children`.
@@ -229,29 +349,11 @@ dendToTree <- function(dend) {
     tree
 }
 
-#' Shiny bindings for morpheus
-#'
-#' Output and render functions for using morpheus within Shiny
-#' applications and interactive Rmd documents.
-#'
-#' @param outputId output variable to read from
-#' @param width,height Must be a valid CSS unit (like \code{'100\%'},
-#'   \code{'400px'}, \code{'auto'}) or a number, which will be coerced to a
-#'   string and have \code{'px'} appended.
-#' @param expr An expression that generates a morpheus
-#' @param env The environment in which to evaluate \code{expr}.
-#' @param quoted Is \code{expr} a quoted expression (with \code{quote()})? This
-#'   is useful if you want to save an expression in a variable.
-#'
-#' @name morpheus-shiny
-#'
-#' @export
+
 morpheusOutput <- function(outputId, width = '100%', height = '400px'){
     htmlwidgets::shinyWidgetOutput(outputId, 'morpheus', width, height, package = 'morpheus')
 }
 
-#' @rdname morpheus-shiny
-#' @export
 renderMorpheus <- function(expr, env = parent.frame(), quoted = FALSE) {
     if (! quoted) { expr <- substitute(expr)} # force quoted
     htmlwidgets::shinyRenderWidget(expr, morpheusOutput, env, quoted = TRUE)
