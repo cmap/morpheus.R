@@ -217,6 +217,9 @@ is.dendrogram <- function (x) { inherits(x, "dendrogram")}
 
 
 read.gct <- function(file) {
+  if(file=="clipboard" && .Platform$OS.type!="windows") {
+    file <- pipe("pbpaste")
+  }
   version = trimws(scan(
     file,
     what = "",

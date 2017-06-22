@@ -103,7 +103,7 @@ to \code{FALSE})}
 \item{height}{Heat map height (optional, defaults to available height)}
 
 \item{...}{Additional morpheus options as documented at 
-\url{https://clue.io/morpheus/configuration.html}}
+\url{https://software.broadinstitute.org/morpheus/configuration.html}}
 
 }
 
@@ -116,7 +116,8 @@ morpheus(mtcars,
   rowAnnotations=rowAnnotations, 
   overrideRowDefaults=FALSE, 
   rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
-
+# Select Edit > Copy Selected Dataset in Morpheus to copy selection to clipboard in gct format
+# data <- read.gct('clipboard') # read the clipboard data into R
 
 }
 \seealso{

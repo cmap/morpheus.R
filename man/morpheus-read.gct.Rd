@@ -12,6 +12,5 @@ A list with data, rowAnnotations, and columnAnnotations.
 }
 \description{
 Read a gct formatted file. The selection in morpheus can be copied to the clipboard in gct format
- by selecting Edit>Copy Selected Dataset. To read clipboard data use read.gct(pipe("pbpaste")) on a
-  Mac and read.gct("clipboard") on Windows.
+ by selecting Edit > Copy Selected Dataset. To read clipboard data use read.gct("clipboard").
 }
