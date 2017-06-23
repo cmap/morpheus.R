@@ -5,7 +5,6 @@ HTMLWidgets.widget({
     var instance = {};
     return {
       renderValue: function (x) {
-
         var toDendrogram = function (rootNode) {
           var counter = 0;
           var leafNodes = [];
@@ -57,10 +56,11 @@ HTMLWidgets.widget({
             }]
           }
         });
-        if (x.columnDendrogram) {
+
+        if (x.columnDendrogram != null) {
           x.columnDendrogram = toDendrogram(x.columnDendrogram);
         }
-        if (x.rowDendrogram) {
+        if (x.rowDendrogram != null) {
           x.rowDendrogram = toDendrogram(x.rowDendrogram);
         }
         if (x.rowAnnotations) {
@@ -76,7 +76,6 @@ HTMLWidgets.widget({
         }
 
         var options = x.options;
-        console.log(options);
         options.el = el;
         options.columnDendrogramField = null;
         options.columnDendrogram = x.columnDendrogram;
@@ -85,6 +84,7 @@ HTMLWidgets.widget({
         options.dataset = dataset;
         options.width = width;
         options.height = height;
+        console.log(options);
         var heatMap = new morpheus.HeatMap(options);
         instance.heatmap = heatMap;
       },

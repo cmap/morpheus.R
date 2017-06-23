@@ -31,13 +31,14 @@ gridThickness = 0.1,
 drawValues = FALSE,
 width = NULL, height = NULL, ...
 ) {
+
     name <- deparse(substitute(x))
     ## x is a matrix!
     if (! is.matrix(x)) {
         x <- as.matrix(x)
     }
     if (! is.matrix(x)) stop("x must be a matrix")
-
+    options(expressions= 500000)
     nr <- dim(x)[1]
     nc <- dim(x)[2]
     ddc <- NULL
@@ -65,8 +66,7 @@ width = NULL, height = NULL, ...
     if (inherits(Rowv, "dendrogram")) {
         ddr <- Rowv
         rowInd <- order.dendrogram(ddr)
-        if (length(rowInd) > nr || any(rowInd < 1 | rowInd >
-        nr))
+        if (length(rowInd) > nr || any(rowInd < 1 | rowInd > nr))
         stop("Rowv dendrogram doesn't match size of x")
         if (length(rowInd) < nr)
         nr <- length(rowInd)
@@ -101,8 +101,7 @@ width = NULL, height = NULL, ...
     if (inherits(Colv, "dendrogram")) {
         ddc <- Colv
         colInd <- order.dendrogram(ddc)
-        if (length(colInd) > nc || any(colInd < 1 | colInd >
-        nc))
+        if (length(colInd) > nc || any(colInd < 1 | colInd > nc))
         stop("Colv dendrogram doesn't match size of x")
         if (length(colInd) < nc)
         nc <- length(colInd)
@@ -150,7 +149,12 @@ width = NULL, height = NULL, ...
 
     ddr <- rev(ddr)
     rowInd <- rev(rowInd) # reverse to match order of R heat maps
-    x <- x[rowInd, colInd]
+    if(!is.null(rowAnnotations)){
+        rowAnnotations <- rowAnnotations[rowInd,]
+    }
+    if(!is.null(columnAnnotations)){
+        columnAnnotations <- columnAnnotations[colInd,]
+    }
 
     ## Labels for Row/Column
     rownames(x) <- labRow %||% paste(1 : nrow(x))
@@ -158,15 +162,15 @@ width = NULL, height = NULL, ...
     options(htmlwidgets.TOJSON_ARGS = list(dataframe = "column"))
     morpheusOptions <- list(...)
     morpheusOptions$colorScheme <- colorScheme
-morpheusOptions$rowSize <- rowSize
-morpheusOptions$columnSize <- columnSize
-morpheusOptions$drawGrid <- drawGrid
-morpheusOptions$gridColor <- gridColor
-morpheusOptions$gridThickness <- gridThickness
-morpheusOptions$drawValues <- drawValues
+    morpheusOptions$rowSize <- rowSize
+    morpheusOptions$columnSize <- columnSize
+    morpheusOptions$drawGrid <- drawGrid
+    morpheusOptions$gridColor <- gridColor
+    morpheusOptions$gridThickness <- gridThickness
+    morpheusOptions$drawValues <- drawValues
 
 
-
+    x <- x[rowInd, colInd]
     if (!is.null(morpheusOptions$colorScheme$colors)) {
       morpheusOptions$colorScheme$colors <- lapply(morpheusOptions$colorScheme$colors, function(color){
         rgb <- col2rgb(color)
@@ -188,32 +192,31 @@ morpheusOptions$drawValues <- drawValues
         values[i] <- rng[1] + fraction*dataRange
       }
       morpheusOptions$colorScheme$values <- values
-     
     }
-    
-    columnDendrogram <- if (! is.null(ddc) &&
+
+    columnDendrogram <- if (!is.null(ddc) &&
         is.dendrogram(ddc) &&
-        dendrogram %in% c("both", "row")) dendToTree(ddc) else NULL
-    rowDendrogram <- if (! is.null(ddr) &&
+        dendrogram %in% c("both", "column")) dendToTree(ddc) else NULL
+    rowDendrogram <- if (!is.null(ddr) &&
         is.dendrogram(ddr) &&
-        dendrogram %in% c("both", "column"))
-    dendToTree(ddr) else NULL
+        dendrogram %in% c("both", "row")) dendToTree(ddr) else NULL
+
     payload <- list(rows = nrow(x), rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, columns = ncol(x), name = name,
     array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = morpheusOptions)
     # create widget
     htmlwidgets::createWidget(
-    name = 'morpheus',
-    payload,
-    width = width,
-    height = height,
-    package = 'morpheus',
-    sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
+        name = 'morpheus',
+        payload,
+        width = width,
+        height = height,
+        package = 'morpheus',
+        sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
     )
+
 }
 
 
 is.dendrogram <- function (x) { inherits(x, "dendrogram")}
-
 
 
 read.gct <- function(file) {
