@@ -29,7 +29,8 @@ drawGrid = TRUE,
 gridColor = "#808080",
 gridThickness = 0.1,
 drawValues = FALSE,
-width = NULL, height = NULL, ...
+width = NULL, height = NULL,
+...
 ) {
 
     name <- deparse(substitute(x))
@@ -203,7 +204,6 @@ width = NULL, height = NULL, ...
 
     payload <- list(rows = nrow(x), rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, columns = ncol(x), name = name,
     array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = morpheusOptions)
-    # create widget
     htmlwidgets::createWidget(
         name = 'morpheus',
         payload,
@@ -212,6 +212,7 @@ width = NULL, height = NULL, ...
         package = 'morpheus',
         sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
     )
+   
 
 }
 
