@@ -84,7 +84,6 @@ HTMLWidgets.widget({
         options.dataset = dataset;
         options.width = width;
         options.height = height;
-        console.log(options);
         var heatMap = new morpheus.HeatMap(options);
         instance.heatmap = heatMap;
       },
