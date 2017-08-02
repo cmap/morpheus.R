@@ -86,6 +86,7 @@ HTMLWidgets.widget({
         options.height = height;
         var heatMap = new morpheus.HeatMap(options);
         instance.heatmap = heatMap;
+        el.heatMap = heatMap;
       },
       resize: function (width, height) {
         if (instance.heatmap != null) {
