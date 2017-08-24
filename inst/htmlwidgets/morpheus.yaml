@@ -3,6 +3,14 @@ dependencies:
   version: 0.0.0
   src: htmlwidgets/lib/js
   script: morpheus-latest.min.js
+- name: jquery
+  version: 2.2.4
+  src: htmlwidgets/lib/js
+  script: jquery-2.2.4.min.js
+- name: bootstrap
+  version: 3.3.7
+  src: htmlwidgets/lib/js
+  script: bootstrap.min.js
 - name: morpheus-external
   version: 0.0.0
   src: htmlwidgets/lib/js
