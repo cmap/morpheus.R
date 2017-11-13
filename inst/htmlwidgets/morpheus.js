@@ -5,6 +5,7 @@ HTMLWidgets.widget({
     var instance = {};
     return {
       renderValue: function (x) {
+        el.innerHTML = '';
         var toDendrogram = function (rootNode) {
           var counter = 0;
           var leafNodes = [];
