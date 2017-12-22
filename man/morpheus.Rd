@@ -109,13 +109,14 @@ to \code{FALSE})}
 
 \examples{
 library(morpheus)
-rowAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), 
+x <- t(mtcars)
+columnAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], ncol(x),
   replace = TRUE))
-morpheus(mtcars, 
-  colorScheme=list(scalingMode="fixed", colors=heat.colors(3)),
-  rowAnnotations=rowAnnotations, 
-  overrideRowDefaults=FALSE, 
-  rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
+morpheus(x,
+  colorScheme=list(scalingMode="relative", colors=heat.colors(3)),
+  columnAnnotations=columnAnnotations,
+  columns=list(list(field='id', display=list('text')), list(field='annotation2',
+   highlightMatchingValues=TRUE, display=list('color'))))
 # Select Edit > Copy Selected Dataset in Morpheus to copy selection to clipboard in gct format
 # data <- read.gct('clipboard') # read the clipboard data into R
 
