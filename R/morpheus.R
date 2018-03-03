@@ -29,10 +29,123 @@ drawGrid = TRUE,
 gridColor = "#808080",
 gridThickness = 0.1,
 drawValues = FALSE,
-width = NULL, height = NULL,
+width = NULL,
+height = NULL,
+...
+) {
+    payload <- create.payload(x,
+        labRow = labRow,
+		labCol = labCol,
+		Rowv = Rowv,
+		Colv=Colv,
+		distfun = distfun,
+		hclustfun = hclustfun,
+		dendrogram = dendrogram,
+		reorderfun = reorderfun,
+		symm = symm,
+		na.rm = na.rm,
+		rowAnnotations=rowAnnotations,
+		columnAnnotations=columnAnnotations,
+		colorScheme = colorScheme,
+		rowSize = rowSize,
+		columnSize = columnSize,
+		drawGrid = drawGrid,
+		gridColor = gridColor,
+		gridThickness = gridThickness,
+		drawValues = drawValues,
+		width = width,
+		height = height,
+		...)
+    htmlwidgets::createWidget(
+        name = 'morpheus',
+        payload,
+        width = width,
+        height = height,
+        package = 'morpheus',
+        sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
+    )
+}
+
+morpheus.toJSON <- function(x,
+labRow = rownames(x),
+labCol = colnames(x),
+
+# dendrogram control
+Rowv = TRUE,
+Colv=if (symm)"Rowv" else TRUE,
+distfun = dist,
+hclustfun = hclust,
+dendrogram = c("both", "row", "column", "none"),
+reorderfun = function(d, w) reorder(d, w),
+symm = FALSE,
+na.rm = TRUE,
+rowAnnotations=NULL,
+columnAnnotations=NULL,
+colorScheme = NULL,
+rowSize = 13,
+columnSize = 13,
+drawGrid = TRUE,
+gridColor = "#808080",
+gridThickness = 0.1,
+drawValues = FALSE,
+width = NULL,
+height = NULL,
 ...
 ) {
 
+     payload <- create.payload(x,
+            labRow = labRow,
+    		labCol = labCol,
+    		Rowv = Rowv,
+    		Colv=Colv,
+    		distfun = distfun,
+    		hclustfun = hclustfun,
+    		dendrogram = dendrogram,
+    		reorderfun = reorderfun,
+    		symm = symm,
+    		na.rm = na.rm,
+    		rowAnnotations=rowAnnotations,
+    		columnAnnotations=columnAnnotations,
+    		colorScheme = colorScheme,
+    		rowSize = rowSize,
+    		columnSize = columnSize,
+    		drawGrid = drawGrid,
+    		gridColor = gridColor,
+    		gridThickness = gridThickness,
+    		drawValues = drawValues,
+    		width = width,
+    		height = height,
+    		...)
+     jsonlite::toJSON(payload$options,dataframe = "columns", null = "null", na = "null", auto_unbox = TRUE,
+                                       digits = getOption("shiny.json.digits", 16), use_signif = TRUE, force = TRUE,
+                                       POSIXt = "ISO8601", UTC = TRUE, rownames = FALSE, keep_vec_names = TRUE,
+                                       strict_atomic = TRUE)
+}
+
+create.payload <- function(x,
+labRow = rownames(x),
+labCol = colnames(x),
+Rowv = TRUE,
+Colv=if (symm)"Rowv" else TRUE,
+distfun = dist,
+hclustfun = hclust,
+dendrogram = c("both", "row", "column", "none"),
+reorderfun = function(d, w) reorder(d, w),
+symm = FALSE,
+na.rm = TRUE,
+rowAnnotations=NULL,
+columnAnnotations=NULL,
+colorScheme = NULL,
+rowSize = 13,
+columnSize = 13,
+drawGrid = TRUE,
+gridColor = "#808080",
+gridThickness = 0.1,
+drawValues = FALSE,
+width = NULL,
+height = NULL,
+...
+) {
     name <- deparse(substitute(x))
     ## x is a matrix!
     if (! is.matrix(x)) {
@@ -170,7 +283,6 @@ width = NULL, height = NULL,
     morpheusOptions$gridThickness <- gridThickness
     morpheusOptions$drawValues <- drawValues
 
-
     x <- x[rowInd, colInd]
     if (!is.null(morpheusOptions$colorScheme$colors)) {
       morpheusOptions$colorScheme$colors <- lapply(morpheusOptions$colorScheme$colors, function(color){
@@ -178,8 +290,8 @@ width = NULL, height = NULL,
         paste("rgb(", rgb[1], ",", rgb[2], ",", rgb[3], ")", sep='')
       })
     }
-    
-    if (!is.null(morpheusOptions$colorScheme$colors) && is.null(morpheusOptions$colorScheme$values)) { 
+
+    if (!is.null(morpheusOptions$colorScheme$colors) && is.null(morpheusOptions$colorScheme$values)) {
       rng = range(x)
       nvals <- length(morpheusOptions$colorScheme$colors)
       fractionStep <- 1/(nvals-1)
@@ -187,7 +299,7 @@ width = NULL, height = NULL,
       dataRange <- rng[2] - rng[1]
       values[1] <- rng[1]
       values[nvals] <- rng[2]
-      
+
       for(i in 2:nvals-1) {
         fraction <-fractionStep*(i-1)
         values[i] <- rng[1] + fraction*dataRange
@@ -202,20 +314,33 @@ width = NULL, height = NULL,
         is.dendrogram(ddr) &&
         dendrogram %in% c("both", "row")) dendToTree(ddr) else NULL
 
-    payload <- list(rows = nrow(x), rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, columns = ncol(x), name = name,
-    array = x, rowNames = rownames(x), columnNames = colnames(x), rowAnnotations = rowAnnotations, columnAnnotations = columnAnnotations, options = morpheusOptions)
-    htmlwidgets::createWidget(
-        name = 'morpheus',
-        payload,
-        width = width,
-        height = height,
-        package = 'morpheus',
-        sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
-    )
-   
 
+
+    rowVectors <- list()
+    rowVectors[[1]] = list(name='id', array=rownames(x))
+
+    if(!is.null(rowAnnotations)) {
+        for (i in 1:ncol(rowAnnotations)) {
+            rowVectors[[i+1]] = list(name= names(rowAnnotations)[i], array=rowAnnotations[,i])
+        }
+    }
+    rowMetadataModel <- list(vectors=rowVectors)
+    columnVectors <- list()
+    columnVectors[[1]] = list(name='id', array=colnames(x))
+    if(!is.null(columnAnnotations)) {
+        for (i in 1:ncol(columnAnnotations)) {
+            columnVectors[[i+1]] = list(name= names(columnAnnotations)[i], array=columnAnnotations[,i])
+        }
+    }
+    columnMetadataModel <- list(vectors=columnVectors)
+    dataset <- list(seriesNames=list(name), rows = nrow(x), columns = ncol(x),  seriesDataTypes=list('number'),
+    seriesArrays=list(x), rowMetadataModel=rowMetadataModel, columnMetadataModel=columnMetadataModel)
+
+    morpheusOptions$dataset = dataset
+    morpheusOptions$name = name
+    payload <- list(rowDendrogram = rowDendrogram, columnDendrogram = columnDendrogram, options=morpheusOptions)
+    return(payload)
 }
-
 
 is.dendrogram <- function (x) { inherits(x, "dendrogram")}
 
