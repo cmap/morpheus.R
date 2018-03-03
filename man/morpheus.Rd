@@ -117,8 +117,6 @@ morpheus(x,
   columnAnnotations=columnAnnotations,
   columns=list(list(field='id', display=list('text')), list(field='annotation2',
    highlightMatchingValues=TRUE, display=list('color'))))
-# Select Edit > Copy Selected Dataset in Morpheus to copy selection to clipboard in gct format
-# data <- read.gct('clipboard') # read the clipboard data into R
 
 }
 \seealso{
