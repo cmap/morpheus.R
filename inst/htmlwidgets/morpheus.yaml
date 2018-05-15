@@ -1,6 +1,6 @@
 dependencies:
 - name: morpheus-internal
-  version: 0.0.0
+  version: 1.0.0
   src: htmlwidgets/lib/js
   script: morpheus-latest.min.js
 - name: jquery
@@ -14,11 +14,13 @@ dependencies:
 - name: morpheus-external
   version: 0.0.0
   src: htmlwidgets/lib/js
-  script: morpheus-external-latest.min.js
+  script: morpheus-external-latest-r.min.js
 - name: morpheus-css
   version: 0.0.0
   src: htmlwidgets/lib/css
   stylesheet: morpheus-latest.min.css
 
 
-    
+
+
+
