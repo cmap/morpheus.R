@@ -13,8 +13,6 @@ devtools::install_github('cmap/morpheus.R')
 library(morpheus)
 rowAnnotations <- data.frame(annotation1=1:32, annotation2=sample(LETTERS[1:3], nrow(mtcars), replace = TRUE))
 morpheus(mtcars, colorScheme=list(scalingMode="fixed", colors=heat.colors(3)), rowAnnotations=rowAnnotations, overrideRowDefaults=FALSE, rows=list(list(field='annotation2', highlightMatchingValues=TRUE, display=list('color'))))
-# Select Edit > Copy Selected Dataset in Morpheus to copy selection to clipboard in gct format
-# data <- read.gct('clipboard') # read the clipboard data into R
 ```
 
 ## Shiny Example
